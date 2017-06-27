@@ -1,4 +1,11 @@
 ################################################################################
 ## Version 0.1.x                                                              ##
 ################################################################################
+v0.1.1 - Jun 28, 2017
+[BUGFIX] Remove the comma on src_fullpath that was causing it to be a tuple.
+[CHANGE] Don't hide the stack trace info when a exception is raised.
+[CHANGE] Fix the CHANGELOG.txt entries format.
+
+--------------------------------------------------------------------------------
+v0.1.0 - Jun 28, 2017
 - Finish the basic implementation.
