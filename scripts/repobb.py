@@ -203,7 +203,7 @@ def run(owner_name, dir_path, project_name = None):
             );
         ## Other files, just copy them...
         else:
-            src_fullpath = os.path.join(kShare_Dir,    filename),
+            src_fullpath = os.path.join(kShare_Dir,    filename);
             dst_fullpath = os.path.join(git_repo_root, filename);
 
             if(os.path.exists(dst_fullpath)):
