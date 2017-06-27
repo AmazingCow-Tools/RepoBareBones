@@ -255,7 +255,8 @@ def main():
     try:
         run(owner_name, ".", project_name);
     except Exception as e:
-        print(e);
+        raise;
+        # print(e);
         exit(1);
 
 
