@@ -55,7 +55,7 @@ import shutil;
 ## Constants                                                                  ##
 ################################################################################
 kShare_Dir="/usr/local/share/amazingcow-repobb";
-kApp_Version="0.1.0";
+kApp_Version="0.2.0";
 kApp_CopyrightYears="2017";
 
 
@@ -119,7 +119,14 @@ def write_text_to_file(filename, text):
 
     f.close();
 
-def process_readme(owner_name, project_name, filename, src_path, dst_path):
+def process_readme(
+    owner_name,
+    project_name,
+    filename,
+    src_path,
+    dst_path,
+    force = False
+):
     ## Not the correct readme, just skip...
     if(not owner_name in filename):
         return;
@@ -127,7 +134,7 @@ def process_readme(owner_name, project_name, filename, src_path, dst_path):
     src_fullpath = os.path.join(src_path, filename);
     dst_fullpath = os.path.join(dst_path, "README.md");
 
-    if(os.path.exists(dst_fullpath)):
+    if(os.path.exists(dst_fullpath) and force == False):
         print "(README.md) already exists. Refusing to overwrite it...";
         return;
 
@@ -147,7 +154,7 @@ def show_error(*args):
 
 def show_help(exit_code):
     print """Usage:
-repobb [--help | --version] [--n2omatt | --amazingcow]
+repobb [--help | --version] [--n2omatt | --amazingcow] [--force] [project-name]
 
 Options:
   *-h --help     : Show this screen.
@@ -155,6 +162,11 @@ Options:
 
   --n2omatt    : Copy the README.md to n2omatt projects.
   --amazingcow : Copy the README.md to Amazing Cow projects. [Default]
+
+  --force : Overwrite previous files.
+
+  project-name : Specify the name of the project. Otherwise repobb will try
+                 to get it from the git info.
 
 Notes:
   Options marked with * are exclusive, i.e. the repobb will run that
@@ -166,7 +178,7 @@ Notes:
     exit(exit_code);
 
 def show_version():
-    print """gosh - {0} - N2OMatt <n2omatt@amazingcow.com>
+    print """repobb - {0} - N2OMatt <n2omatt@amazingcow.com>
 Copyright (c) {1} - Amazing Cow
 This is a free software (GPLv3) - Share/Hack it
 Check opensource.amazingcow.com for more :)""".format(
@@ -177,7 +189,7 @@ Check opensource.amazingcow.com for more :)""".format(
     exit(0);
 
 
-def run(owner_name, dir_path, project_name = None):
+def run(owner_name, dir_path, project_name = None, force = False):
     if(project_name == None):
         git_repo_name = get_git_repo_name(dir_path);
     else:
@@ -199,14 +211,15 @@ def run(owner_name, dir_path, project_name = None):
                 git_repo_name,
                 filename,
                 kShare_Dir,
-                git_repo_root
+                git_repo_root,
+                force
             );
         ## Other files, just copy them...
         else:
             src_fullpath = os.path.join(kShare_Dir,    filename);
             dst_fullpath = os.path.join(git_repo_root, filename);
 
-            if(os.path.exists(dst_fullpath)):
+            if(os.path.exists(dst_fullpath) and force == False):
                 print "({0}) already exists. Refusing to overwrite it...".format(
                     filename
                 );
@@ -219,19 +232,24 @@ def run(owner_name, dir_path, project_name = None):
 ## Script                                                                     ##
 ################################################################################
 def main():
-      ## Init the getopt.
+    ## Init the getopt.
     try:
         opts, args = getopt.gnu_getopt(
             sys.argv[1:],
             "",
-            ["help", "version", "n2omatt", "amazingcow", "project-name="]
+            [
+                "help", "version",
+                "n2omatt", "amazingcow",
+                "project-name=", "force"
+            ]
         );
     except Exception as e:
         show_error(str(e));
 
     ## Default vars...
-    owner_name="amazingcow";
-    project_name=None;
+    owner_name   = "amazingcow";
+    project_name = None;
+    force        = False;
 
     ## Parse the given command line options.
     for option, argument in opts:
@@ -251,12 +269,15 @@ def main():
         elif("project-name" in option):
             project_name=argument;
 
+        ## Force
+        elif("force" in option):
+            force = True;
+
     ## Run.
     try:
-        run(owner_name, ".", project_name);
+        run(owner_name, ".", project_name, force);
     except Exception as e:
         raise;
-        # print(e);
         exit(1);
 
 
