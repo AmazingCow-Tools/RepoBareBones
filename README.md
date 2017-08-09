@@ -47,7 +47,7 @@ As usual, you are **very welcomed** to **share** and **hack** it.
 ## Usage:
 
 ```
-repobb [--help | --version] [--n2omatt | --amazingcow]
+repobb [--help | --version] [--n2omatt | --amazingcow] [--force] [project-name]
 
 Options:
   *-h --help     : Show this screen.
@@ -55,6 +55,11 @@ Options:
 
   --n2omatt    : Copy the README.md to n2omatt projects.
   --amazingcow : Copy the README.md to Amazing Cow projects. [Default]
+
+  --force : Overwrite previous files.
+
+  project-name : Specify the name of the project. Otherwise repobb will try
+                 to get it from the git info.
 
 Notes:
   Options marked with * are exclusive, i.e. the repobb will run that
