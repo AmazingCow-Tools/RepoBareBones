@@ -49,7 +49,7 @@ As usual, you are **very welcomed** to **share** and **hack** it.
 We strive to make our source code fully documented.   
 While there are a myriad of comments, one might find useful take a look at:
 
-* [Doxygen Docs](http://www.amazingcow.com/projects/__PROJECT_NAME__/doxygen/).
+* [Doxygen Docs](http://www.amazingcow.com/docs/__PROJECT_NAME__/).
 
 Anyway if you didn't understand something let us know sending a mail to  
 [help_floss@amazingcow.com]() with the subject filled with the
@@ -117,4 +117,4 @@ That's gonna give you all things to do :D.
 ## Others:
 
 Check our other Free Software repos and take a look at our 
-[free software site](http://www.amazingcow.com).
+[free software site](http://floss.amazingcow.com).
