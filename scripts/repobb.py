@@ -226,7 +226,7 @@ def main():
         show_error(str(e));
 
     ## Default vars...
-    owner_name   = "amazingcow";
+    owner_name   = "AmazingCow Labs";
     project_name = None;
     force        = False;
 
@@ -242,7 +242,7 @@ def main():
         elif("n2omatt" in option):
             owner_name="n2omatt";
         elif("amazingcow" in option):
-            owner_name="amazingcow";
+            owner_name="AmazingCow Labs";
 
         ## Project name
         elif("project-name" in option):
