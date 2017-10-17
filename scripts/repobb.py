@@ -34,7 +34,7 @@ import shutil;
 ## Constants                                                                  ##
 ################################################################################
 kShare_Dir="/usr/local/share/amazingcow-repobb";
-kApp_Version="0.3.0";
+kApp_Version="0.3.1";
 kApp_CopyrightYears="2017";
 
 
