@@ -89,6 +89,24 @@ Check floss.amazingcow.com for more :)""".format(
 ################################################################################
 ## Git Functions                                                              ##
 ################################################################################
+def get_project_url(dir_path):
+    cwd = os.getcwd();
+    os.chdir(dir_path);
+
+    process = subprocess.Popen(
+        ["git config --get remote.origin.url", dir_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True
+    );
+
+    name = process.stdout.read().decode("UTF-8")
+    name = name.replace("\n", "").replace(".git", "");
+
+    os.chdir(cwd);
+
+    return name;
+
 def get_project_name(dir_path):
     cwd = os.getcwd();
     os.chdir(dir_path);
@@ -126,9 +144,6 @@ def get_project_root(dir_path):
 
     return name;
 
-
-def get_project_url():
-    return "adsfdas";
 
 ################################################################################
 ## File Functions                                                             ##
@@ -210,7 +225,7 @@ def run(owner_name, dir_path, project_name = None, force = False):
 
                 replace_dict = {
                     "__PROJECT_NAME__" : project_name,
-                    "__GITHUB_URL__"   : get_project_url(),
+                    "__GITHUB_URL__"   : get_project_url(project_root),
                     "__OWNER_NAME__"   : owner_name,
                 };
                 process_file(
