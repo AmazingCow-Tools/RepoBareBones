@@ -38,92 +38,10 @@ kApp_Version="0.2.0";
 kApp_CopyrightYears="2017";
 
 
+
 ################################################################################
-## Functions                                                                  ##
+## Helper Functions                                                           ##
 ################################################################################
-## Git Functions
-def get_git_repo_name(dir_path):
-    cwd = os.getcwd();
-    os.chdir(dir_path);
-
-    process = subprocess.Popen(
-        ["basename $(git config --get remote.origin.url) .git", dir_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=True
-    );
-
-    name = process.stdout.read().decode("UTF-8").replace("\n", "");
-
-    ## We don't find the repo name.
-    if(name == u".git" or name == ".git"):
-        name = "__PROJECT_NAME__";
-
-    os.chdir(cwd);
-
-    return name;
-
-def get_git_repo_root(dir_path):
-    cwd = os.getcwd();
-    os.chdir(dir_path);
-
-    process = subprocess.Popen(
-        ["git rev-parse --show-toplevel"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        shell=True
-    );
-
-    name = process.stdout.read().decode("UTF-8").replace("\n", "");
-    os.chdir(cwd);
-
-    return name;
-
-
-## File Functions
-def read_text_from_file(filename):
-    f = open(filename);
-
-    all_lines = f.readlines();
-    text      = "".join(all_lines);
-
-    f.close();
-
-    return text;
-
-def write_text_to_file(filename, text):
-    f = open(filename, mode="w");
-
-    f.write(text);
-
-    f.close();
-
-def process_readme(
-    owner_name,
-    project_name,
-    filename,
-    src_path,
-    dst_path,
-    force = False
-):
-    ## Not the correct readme, just skip...
-    if(not owner_name in filename):
-        return;
-
-    src_fullpath = os.path.join(src_path, filename);
-    dst_fullpath = os.path.join(dst_path, "README.md");
-
-    if(os.path.exists(dst_fullpath) and force == False):
-        print "(README.md) already exists. Refusing to overwrite it...";
-        return;
-
-    text          = read_text_from_file(src_fullpath);
-    text_replaced = text.replace("__PROJECT_NAME__", project_name);
-
-    write_text_to_file(dst_fullpath, text_replaced);
-
-
-## Helper Functions
 def show_error(*args):
     print("[FATAL] {0}".format(
         "".join(args)
@@ -160,7 +78,7 @@ def show_version():
     print """repobb - {0} - N2OMatt <n2omatt@amazingcow.com>
 Copyright (c) {1} - Amazing Cow
 This is a free software (GPLv3) - Share/Hack it
-Check opensource.amazingcow.com for more :)""".format(
+Check floss.amazingcow.com for more :)""".format(
         kApp_Version,
         kApp_CopyrightYears
     );
@@ -168,47 +86,143 @@ Check opensource.amazingcow.com for more :)""".format(
     exit(0);
 
 
-def run(owner_name, dir_path, project_name = None, force = False):
-    if(project_name == None):
-        git_repo_name = get_git_repo_name(dir_path);
-    else:
-        git_repo_name = project_name;
+################################################################################
+## Git Functions                                                              ##
+################################################################################
+def get_project_name(dir_path):
+    cwd = os.getcwd();
+    os.chdir(dir_path);
 
-    git_repo_root = get_git_repo_root(dir_path);
+    process = subprocess.Popen(
+        ["basename $(git config --get remote.origin.url) .git", dir_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True
+    );
 
-    print "Repo Name : ({0})".format(git_repo_name);
-    print "Repo Root : ({0})".format(git_repo_root);
-    print "Owner Name: ({0})".format(owner_name);
+    name = process.stdout.read().decode("UTF-8").replace("\n", "");
 
-    for filename in os.listdir(kShare_Dir):
-        ## We are dealing with one of the READMEs
-        ## So we need check process it to replace the placeholders
-        ## and write on the correct path.
-        if(os.path.splitext(filename)[1] == ".md"):
-            process_readme(
-                owner_name,
-                git_repo_name,
-                filename,
-                kShare_Dir,
-                git_repo_root,
-                force
-            );
-        ## Other files, just copy them...
-        else:
-            src_fullpath = os.path.join(kShare_Dir,    filename);
-            dst_fullpath = os.path.join(git_repo_root, filename);
+    ## We don't find the repo name.
+    if(name == u".git" or name == ".git"):
+        name = "__PROJECT_NAME__";
 
-            if(os.path.exists(dst_fullpath) and force == False):
-                print "({0}) already exists. Refusing to overwrite it...".format(
-                    filename
-                );
-                continue;
+    os.chdir(cwd);
 
-            shutil.copyfile(src_fullpath, dst_fullpath);
+    return name;
+
+def get_project_root(dir_path):
+    cwd = os.getcwd();
+    os.chdir(dir_path);
+
+    process = subprocess.Popen(
+        ["git rev-parse --show-toplevel"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True
+    );
+
+    name = process.stdout.read().decode("UTF-8").replace("\n", "");
+    os.chdir(cwd);
+
+    return name;
+
+
+def get_project_url():
+    return "adsfdas";
+
+################################################################################
+## File Functions                                                             ##
+################################################################################
+def read_text_from_file(filename):
+    f = open(filename);
+
+    all_lines = f.readlines();
+    text      = "".join(all_lines);
+
+    f.close();
+
+    return text;
+
+def write_text_to_file(filename, text):
+    f = open(filename, mode="w");
+
+    f.write(text);
+
+    f.close();
+
+def process_file(src, dst, force, replace_dict):
+    if(os.path.exists(dst) and force == False):
+        print "({0}) already exists. Refusing to overwrite it...".format(
+            os.path.basename(dst)
+        );
+        return;
+
+    text = read_text_from_file(src);
+    for key in replace_dict.keys():
+        text = text.replace(key, replace_dict[key]);
+
+    write_text_to_file(dst, text);
 
 
 ################################################################################
 ## Script                                                                     ##
+################################################################################
+def run(owner_name, dir_path, project_name = None, force = False):
+    if(project_name == None):
+        project_name = get_project_name(dir_path);
+
+    project_root     = get_project_root(dir_path);
+    clean_owner_name = owner_name.replace(" ", "_").lower();
+
+    print "Repo Name       : ({0})".format(project_name    );
+    print "Repo Root       : ({0})".format(project_root    );
+    print "Owner Name      : ({0})".format(owner_name      );
+    print "Clean Owner Name: ({0})".format(clean_owner_name);
+    print "---";
+
+    ## Get all template files and process them.
+    for filename in os.listdir(kShare_Dir):
+        print "[Processing]: {0}".format(filename);
+        ## We are dealing with one of the READMEs
+        ## So we need check process it to replace the placeholders
+        ## and write on the correct path.
+        if(os.path.splitext(filename)[1] == ".md"):
+            ## Not the correct readme, just skip...
+            if(not clean_owner_name in filename):
+                continue;
+
+            replace_dict = { "__PROJECT_NAME__" : project_name };
+            process_file(
+                os.path.join(kShare_Dir,   "README_{0}.md".format(clean_owner_name)),
+                os.path.join(project_root, "README.md"),
+                force,
+                replace_dict
+            );
+
+        ## Docs folder...
+        elif(filename == "docs"):
+            docs_input  = os.path.join(kShare_Dir,   "docs");
+            docs_output = os.path.join(project_root, "docs");
+
+            os.system("mkdir -p {0}".format(docs_output));
+            for docs_filename in os.listdir(docs_input):
+                print "[Processing]: docs/{0}".format(docs_filename);
+
+                replace_dict = {
+                    "__PROJECT_NAME__" : project_name,
+                    "__GITHUB_URL__"   : get_project_url(),
+                    "__OWNER_NAME__"   : owner_name,
+                };
+                process_file(
+                    os.path.join(docs_input,  docs_filename),
+                    os.path.join(docs_output, docs_filename),
+                    force,
+                    replace_dict
+                );
+
+
+################################################################################
+## Entry point                                                                ##
 ################################################################################
 def main():
     ## Init the getopt.
