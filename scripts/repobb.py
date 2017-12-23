@@ -34,9 +34,26 @@ import shutil;
 ## Constants                                                                  ##
 ################################################################################
 kShare_Dir="/usr/local/share/amazingcow-repobb";
-kApp_Version="0.3.1";
+kApp_Version="0.3.2";
 kApp_CopyrightYears="2017";
 
+kFiles_Docs = [
+    "AUTHORS.txt",
+    "CHANGELOG.txt",
+    "COPYING.txt",
+    "TODO.txt",
+    "site_info"
+];
+
+kFiles_Doxygen = [
+    "Doxyfile",
+    "mainpage.dox"
+];
+
+kFiles_Readme = [
+    "README_n2omatt.md",
+    "README_amazingcow_labs.md"
+];
 
 
 ################################################################################
@@ -51,7 +68,7 @@ def show_error(*args):
 
 def show_help(exit_code):
     print """Usage:
-repobb [--help | --version] [--n2omatt | --amazingcow] [--force] [project-name]
+repobb [--help | --version] [--n2omatt | --amazingcow] [--force] [--doxygen] [project-name]
 
 Options:
   *-h --help     : Show this screen.
@@ -61,6 +78,8 @@ Options:
   --amazingcow : Copy the README.md to Amazing Cow projects. [Default]
 
   --force : Overwrite previous files.
+
+  --doxygen : Add the doxygen files.
 
   project-name : Specify the name of the project. Otherwise repobb will try
                  to get it from the git info.
@@ -73,6 +92,7 @@ Notes:
     it will be used to generate the README.md
 """
     exit(exit_code);
+
 
 def show_version():
     print """repobb - {0} - N2OMatt <n2omatt@amazingcow.com>
@@ -182,58 +202,78 @@ def process_file(src, dst, force, replace_dict):
 ################################################################################
 ## Script                                                                     ##
 ################################################################################
-def run(owner_name, dir_path, project_name = None, force = False):
+def run(owner_name, dir_path, project_name, force, with_doxygen):
     if(project_name == None):
         project_name = get_project_name(dir_path);
 
     project_root     = get_project_root(dir_path);
+    project_url      = get_project_url(project_root)
     clean_owner_name = owner_name.replace(" ", "_").lower();
 
-    print "Repo Name       : ({0})".format(project_name    );
-    print "Repo Root       : ({0})".format(project_root    );
-    print "Owner Name      : ({0})".format(owner_name      );
-    print "Clean Owner Name: ({0})".format(clean_owner_name);
+    replace_dict = {
+        "__PROJECT_NAME__" : project_name,
+        "__GITHUB_URL__"   : project_url,
+        "__OWNER_NAME__"   : owner_name,
+    };
+
+    docs_dir_input_path  = os.path.join(kShare_Dir,   "docs");
+    docs_dir_output_path = os.path.join(project_root, "docs");
+    os.system("mkdir -p {0}".format(docs_dir_output_path));
+
+
+    ##--------------------------------------------------------------------------
+    ## Output...
+    print "Repo Name        : ({0})".format(project_name        );
+    print "Repo Root        : ({0})".format(project_root        );
+    print "Repo URL         : ({0})".format(project_url         );
+    print "Owner Name       : ({0})".format(owner_name          );
+    print "Clean Owner Name : ({0})".format(clean_owner_name    );
+    print "Input Path       : ({0})".format(docs_dir_input_path );
+    print "Output Path      : ({0})".format(docs_dir_output_path);
     print "---";
 
-    ## Get all template files and process them.
-    for filename in os.listdir(kShare_Dir):
+    ##--------------------------------------------------------------------------
+    ## Process the READMEs
+    for filename in kFiles_Readme:
+        ## We're not in the right readme.
+        if(clean_owner_name not in filename):
+            continue;
+
         print "[Processing]: {0}".format(filename);
-        ## We are dealing with one of the READMEs
-        ## So we need check process it to replace the placeholders
-        ## and write on the correct path.
-        if(os.path.splitext(filename)[1] == ".md"):
-            ## Not the correct readme, just skip...
-            if(not clean_owner_name in filename):
-                continue;
+        process_file(
+            os.path.join(kShare_Dir,   "README_{0}.md".format(clean_owner_name)),
+            os.path.join(project_root, "README.md"),
+            force,
+            replace_dict
+        );
 
-            replace_dict = { "__PROJECT_NAME__" : project_name };
-            process_file(
-                os.path.join(kShare_Dir,   "README_{0}.md".format(clean_owner_name)),
-                os.path.join(project_root, "README.md"),
-                force,
-                replace_dict
-            );
+    ##--------------------------------------------------------------------------
+    ## Process the docs files.
+    for filename in kFiles_Docs:
+        print "[Processing]: {0}".format(filename);
 
-        ## Docs folder...
-        elif(filename == "docs"):
-            docs_input  = os.path.join(kShare_Dir,   "docs");
-            docs_output = os.path.join(project_root, "docs");
+        process_file(
+            os.path.join(docs_dir_input_path,  filename),
+            os.path.join(docs_dir_output_path, filename),
+            force,
+            replace_dict
+        );
 
-            os.system("mkdir -p {0}".format(docs_output));
-            for docs_filename in os.listdir(docs_input):
-                print "[Processing]: docs/{0}".format(docs_filename);
+    ##--------------------------------------------------------------------------
+    ## Process the Doxygen files.
+    if(not with_doxygen):
+        return;
 
-                replace_dict = {
-                    "__PROJECT_NAME__" : project_name,
-                    "__GITHUB_URL__"   : get_project_url(project_root),
-                    "__OWNER_NAME__"   : owner_name,
-                };
-                process_file(
-                    os.path.join(docs_input,  docs_filename),
-                    os.path.join(docs_output, docs_filename),
-                    force,
-                    replace_dict
-                );
+    for filename in kFiles_Doxygen:
+        print "[Processing]: {0}".format(filename);
+
+        process_file(
+            os.path.join(docs_dir_input_path,  filename),
+            os.path.join(docs_dir_output_path, filename),
+            force,
+            replace_dict
+        );
+
 
 
 ################################################################################
@@ -248,7 +288,9 @@ def main():
             [
                 "help", "version",
                 "n2omatt", "amazingcow",
-                "project-name=", "force"
+                "project-name=",
+                "force",
+                "doxygen"
             ]
         );
     except Exception as e:
@@ -258,6 +300,7 @@ def main():
     owner_name   = "AmazingCow Labs";
     project_name = None;
     force        = False;
+    with_doxygen = False;
 
     ## Parse the given command line options.
     for option, argument in opts:
@@ -268,22 +311,22 @@ def main():
             show_version();
 
         ## Owner
-        elif("n2omatt" in option):
-            owner_name="n2omatt";
-        elif("amazingcow" in option):
-            owner_name="AmazingCow Labs";
+        elif("n2omatt"    in option): owner_name = "n2omatt";
+        elif("amazingcow" in option): owner_name = "AmazingCow Labs";
 
         ## Project name
-        elif("project-name" in option):
-            project_name=argument;
+        elif("project-name" in option): project_name = argument;
 
         ## Force
-        elif("force" in option):
-            force = True;
+        elif("force" in option): force = True;
+
+        ## Doxygen
+        elif("doxygen" in option):
+            with_doxygen = True;
 
     ## Run.
     try:
-        run(owner_name, ".", project_name, force);
+        run(owner_name, ".", project_name, force, with_doxygen);
     except Exception as e:
         raise;
         exit(1);
